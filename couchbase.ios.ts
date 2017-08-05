@@ -13,9 +13,9 @@ export class Couchbase {
     private manager: any;
     private database: any;
 
-    constructor(databaseName: String){
+    constructor(databaseName: String) {
         this.manager = CBLManager.sharedInstance();
-        if (!this.manager){
+        if (!this.manager) {
             console.log("MANAGER ERROR:Can not create share instance of CBLManager");
             throw new Error("MANAGER ERROR:Can not create share instance of CBLManager");
         }
@@ -23,20 +23,20 @@ export class Couchbase {
 
         this.database = this.manager.databaseNamedError(databaseName, errorRef);
 
-        if (!this.database){
-          console.log(errorRef.value);
-          throw new Error(errorRef.value);
+        if (!this.database) {
+            console.log(errorRef.value);
+            throw new Error(errorRef.value);
         }
     }
-    createDocument(data: Object, documentId?: string){
+    createDocument(data: Object, documentId?: string) {
         var doc = documentId == null ? this.database.createDocument() : this.database.documentWithID(documentId);
 
         var documentId: string = doc.documentID;
 
         var errorRef = new interop.Reference();
-        var revision  = doc.putPropertiesError(data, errorRef);
+        var revision = doc.putPropertiesError(data, errorRef);
 
-        if (!errorRef){
+        if (!errorRef) {
             console.log("DOCUMENT ERROR:" + errorRef.value);
             throw new Error("DOCUMENT ERROR:" + errorRef.value);
         }
@@ -44,44 +44,44 @@ export class Couchbase {
         return documentId;
     }
 
-    getDocument(documentId: string){
+    getDocument(documentId: string) {
         var document = this.database.documentWithID(documentId);
-        if (document && document.properties){
-          return  JSON.parse(this.mapToJson(document.properties));
+        if (document && document.properties) {
+            return JSON.parse(this.mapToJson(document.properties));
         }
         return null;
     }
 
-    updateDocument(documentId: string, data: any){
-      var document = this.database.documentWithID(documentId);
-      let temp: any = this.getDocument(documentId);
-      data._id = temp._id;
-      data._rev = temp._rev;
-      var errorRef = new interop.Reference();
-      var revision  = document.putPropertiesError(data, errorRef);
+    updateDocument(documentId: string, data: any) {
+        var document = this.database.documentWithID(documentId);
+        let temp: any = this.getDocument(documentId);
+        data._id = temp._id;
+        data._rev = temp._rev;
+        var errorRef = new interop.Reference();
+        var revision = document.putPropertiesError(data, errorRef);
 
-      if (!errorRef){
-        console.error("DOCUMENT ERROR", errorRef.value);
-        throw new Error("DOCUMENT ERROR " + errorRef.value);
-      }
+        if (!errorRef) {
+            console.error("DOCUMENT ERROR", errorRef.value);
+            throw new Error("DOCUMENT ERROR " + errorRef.value);
+        }
     }
 
-    deleteDocument(documentId: string){
-      var document = this.database.documentWithID(documentId);
-      var errorRef = new interop.Reference();
+    deleteDocument(documentId: string) {
+        var document = this.database.documentWithID(documentId);
+        var errorRef = new interop.Reference();
 
-      document.deleteDocument(errorRef);
+        document.deleteDocument(errorRef);
 
-      if (!errorRef){
-        return false;
-      }
-      return true;
+        if (!errorRef) {
+            return false;
+        }
+        return true;
     }
 
     createView(viewName: string, viewRevision: string, callback: any) {
         var self = this;
         var view = this.database.viewNamed(viewName)
-        view.setMapBlockVersion(function(document, emit){
+        view.setMapBlockVersion(function (document, emit) {
             callback(JSON.parse(self.mapToJson(document)), {
                 emit: emit
             });
@@ -89,48 +89,48 @@ export class Couchbase {
     }
 
     executeQuery(viewName: string, options?: any): Array<any> {
-      var view = this.database.viewNamed(viewName);
-      var query = view.createQuery();
-      if(options != null) {
-          if(options.descending) {
-              query.descending = options.descending;
-          }
-          if(options.limit) {
-              query.limit = options.limit;
-          }
-          if(options.skip) {
-              query.skip = options.skip;
-          }
-          if(options.startKey) {
-              query.startKey = options.startKey;
-          }
-          if(options.endKey) {
-              query.endKey = options.endKey;
-          }
-      }
-      var errorRef = new interop.Reference();
-      var resultSet = query.run(errorRef);
+        var view = this.database.viewNamed(viewName);
+        var query = view.createQuery();
+        if (options != null) {
+            if (options.descending) {
+                query.descending = options.descending;
+            }
+            if (options.limit) {
+                query.limit = options.limit;
+            }
+            if (options.skip) {
+                query.skip = options.skip;
+            }
+            if (options.startKey) {
+                query.startKey = options.startKey;
+            }
+            if (options.endKey) {
+                query.endKey = options.endKey;
+            }
+        }
+        var errorRef = new interop.Reference();
+        var resultSet = query.run(errorRef);
 
-      var row = resultSet.nextRow();
+        var row = resultSet.nextRow();
 
-      var results: Array<any> = [];
+        var results: Array<any> = [];
 
-      while(row){
-          if(row.value !== null) {
-              if(typeof row.value === "object") {
-                  results.push(JSON.parse(this.mapToJson(row.value)));
-              } else {
-                  results.push(row.value);
-              }
-          }
-         row = resultSet.nextRow();
-       }
+        while (row) {
+            if (row.value !== null) {
+                if (typeof row.value === "object") {
+                    results.push(JSON.parse(this.mapToJson(row.value)));
+                } else {
+                    results.push(row.value);
+                }
+            }
+            row = resultSet.nextRow();
+        }
 
-       if (!errorRef){
-           console.log(errorRef.value);
-       }
+        if (!errorRef) {
+            console.log(errorRef.value);
+        }
 
-       return results;
+        return results;
     }
 
     createPullReplication(remoteUrl: string) {
@@ -138,9 +138,9 @@ export class Couchbase {
 
         var replication = this.database.createPullReplication(url);
 
-        if (!replication){
-          console.error("PULL ERROR");
-          throw new Error("PULL ERROR");
+        if (!replication) {
+            console.error("PULL ERROR");
+            throw new Error("PULL ERROR");
         }
 
         return new Replicator(replication);
@@ -151,9 +151,9 @@ export class Couchbase {
 
         var replication = this.database.createPushReplication(url);
 
-        if (!replication){
-           console.error("PUSH ERROR");
-           throw new Error("PUSH ERROR");
+        if (!replication) {
+            console.error("PUSH ERROR");
+            throw new Error("PUSH ERROR");
         }
 
         return new Replicator(replication);;
@@ -161,9 +161,9 @@ export class Couchbase {
 
     addDatabaseChangeListener(callback: any) {
         var self = this;
-        function getter<T>(_this: any, property: T | {(): T}): T {
+        function getter<T>(_this: any, property: T | { (): T }): T {
             if (typeof property === "function") {
-                return (<{(): T}>property).call(_this);
+                return (<{ (): T }>property).call(_this);
             } else {
                 return <T>property;
             }
@@ -171,17 +171,17 @@ export class Couchbase {
 
         let defaultCenter = getter(NSNotificationCenter, NSNotificationCenter.defaultCenter)
         let mainQueue = getter(NSOperationQueue, NSOperationQueue.mainQueue)
-        defaultCenter.addObserverForNameObjectQueueUsingBlock(`CBLDatabaseChange`, this.database, mainQueue, function(notification){
+        defaultCenter.addObserverForNameObjectQueueUsingBlock(`CBLDatabaseChange`, this.database, mainQueue, function (notification) {
             var changesList = [];
-            if (notification.userInfo){
-              var changes = notification.userInfo.objectForKey("changes");
+            if (notification.userInfo) {
+                var changes = notification.userInfo.objectForKey("changes");
 
-              if (changes != null){
-                for (var i = 0; i < changes.count; i++) {
-                    changesList.push(new DatabaseChange(changes[i]));
+                if (changes != null) {
+                    for (var i = 0; i < changes.count; i++) {
+                        changesList.push(new DatabaseChange(changes[i]));
+                    }
+                    callback(changesList);
                 }
-                callback(changesList);
-              }
             }
         });
     }
@@ -191,21 +191,21 @@ export class Couchbase {
 
         this.database.deleteDatabase(errorRef);
 
-        if (!errorRef){
-          console.error("DESTROY", errorRef.value);
+        if (!errorRef) {
+            console.error("DESTROY", errorRef.value);
         }
     }
 
-    private mapToJson(properties: Object){
-      var errorRef = new interop.Reference();
-      var result = "";
-      if(NSJSONSerialization.isValidJSONObject(properties)) {
-          var data = NSJSONSerialization.dataWithJSONObjectOptionsError(properties, NSJSONWritingPrettyPrinted, errorRef);
-          result = NSString.alloc().initWithDataEncoding(data, NSUTF8StringEncoding);
-      } else {
-          result = JSON.stringify(properties);
-      }
-      return result;
+    private mapToJson(properties: Object) {
+        var errorRef = new interop.Reference();
+        var result = "";
+        if (NSJSONSerialization.isValidJSONObject(properties)) {
+            var data = NSJSONSerialization.dataWithJSONObjectOptionsError(properties, NSJSONWritingPrettyPrinted, errorRef);
+            result = NSString.alloc().initWithDataEncoding(data, NSUTF8StringEncoding);
+        } else {
+            result = JSON.stringify(properties);
+        }
+        return result;
     }
 
 }
@@ -235,12 +235,16 @@ export class Replicator {
     }
 
     setCookie(name: String, value: String, path: String, expirationDate: Date, secure: boolean) {
-      this.replicator.setCookieNamedWithValuePathExpirationDateSecure(name, value, path, expirationDate, secure);
+        this.replicator.setCookieNamedWithValuePathExpirationDateSecure(name, value, path, expirationDate, secure);
     };
 
     deleteCookie(name: String) {
-      this.replicator.deleteCookieNamed(name);
+        this.replicator.deleteCookieNamed(name);
     }
+
+    setChannels(channelsArray: Array<String>) {
+        this.replicator.setChannels(channelsArray);
+    };
 }
 
 export class DatabaseChange {

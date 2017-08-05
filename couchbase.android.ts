@@ -83,26 +83,26 @@ export class Couchbase {
 
     public executeQuery(viewName: string, options?: any) {
         var query = this.database.getView(viewName).createQuery();
-        if(options != null) {
-            if(options.descending) {
+        if (options != null) {
+            if (options.descending) {
                 query.setDescending(options.descending);
             }
-            if(options.limit) {
+            if (options.limit) {
                 query.setLimit(options.limit);
             }
-            if(options.skip) {
+            if (options.skip) {
                 query.setSkip(options.skip);
             }
-            if(options.startKey) {
+            if (options.startKey) {
                 query.setStartKey(options.startKey);
             }
-            if(options.endKey) {
+            if (options.endKey) {
                 query.setEndKey(options.endKey);
             }
         }
         var result = query.run();
         var parsedResult: Array<any> = [];
-        while(result.hasNext()) {
+        while (result.hasNext()) {
             var row = result.next();
             parsedResult.push(this.mapToObject(row.getValue()));
         }
@@ -272,9 +272,14 @@ export class Replicator {
     };
 
     deleteCookie(name: String) {
-      this.replicator.deleteCookieNamed(name);
+        this.replicator.deleteCookieNamed(name);
     }
 
+    setChannels(channelsArray: Array<String>) {
+        //Convert Array to JavaArrayList
+        let channels = new java.util.ArrayList(java.util.Arrays.asList(channelsArray));
+        this.replicator.setChannels(channels);
+    };
 }
 
 export class Emitter {
@@ -286,7 +291,7 @@ export class Emitter {
     }
 
     emit(key: Object, value: Object) {
-        if(typeof value === "object") {
+        if (typeof value === "object") {
             var gson = (new com.google.gson.GsonBuilder()).create();
             this.emitter.emit(key, gson.fromJson(JSON.stringify(value), (new java.util.HashMap).getClass()));
         } else {
